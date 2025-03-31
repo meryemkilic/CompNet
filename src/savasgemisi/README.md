@@ -108,4 +108,4 @@ Proje, üç ana bileşenden oluşur:
 - Java Swing kütüphanesi ile grafiksel arayüz
 - Thread yapısı ile asenkron iletişim
 - Socket programlama ile ağ iletişimi
-- MVC (Model-View-Controller) tasarım deseni kullanımı
+- MVC (Model-View-Controller) tasarım deseni kullanımı 
