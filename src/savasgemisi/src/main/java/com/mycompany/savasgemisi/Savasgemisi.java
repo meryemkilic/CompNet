@@ -14,7 +14,7 @@ import javax.swing.UIManager;
 /**
  * Savaş Gemisi oyununun ana sınıfı.
  * Bu sınıf, kullanıcıya sunucu veya istemci başlatma seçenekleri sunar.
- * 
+ *
  * @author merye
  */
 public class Savasgemisi {
