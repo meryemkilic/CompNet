@@ -4,8 +4,13 @@ import java.util.Scanner;
 
 /**
  * Sunucu uygulamasını başlatan ana sınıf.
+ * Bu sınıf, sunucuyu başlatır ve konsol komutlarını işler.
  */
 public class ServerMain {
+    /**
+     * Uygulamanın ana giriş noktası
+     * @param args Komut satırı argümanları (opsiyonel port numarası)
+     */
     public static void main(String[] args) {
         int port = 5000; // Varsayılan port
         

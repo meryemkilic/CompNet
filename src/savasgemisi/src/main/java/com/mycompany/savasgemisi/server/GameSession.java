@@ -6,13 +6,28 @@ import com.mycompany.savasgemisi.common.Move;
 
 /**
  * İki oyuncu arasındaki oyun oturumunu yöneten sınıf.
+ * Bu sınıf, iki oyuncu arasındaki oyun akışını kontrol eder ve
+ * oyuncular arasındaki iletişimi koordine eder.
  */
 public class GameSession {
+    /** Birinci oyuncunun istemci bağlantısı */
     private SClient client1;
+    
+    /** İkinci oyuncunun istemci bağlantısı */
     private SClient client2;
+    
+    /** Oyun mantığını yöneten BattleshipGame nesnesi */
     private BattleshipGame game;
+    
+    /** Sunucu referansı */
     private GameServer server;
     
+    /**
+     * Yeni bir oyun oturumu oluşturur
+     * @param client1 Birinci oyuncunun istemci bağlantısı
+     * @param client2 İkinci oyuncunun istemci bağlantısı
+     * @param server Sunucu referansı
+     */
     public GameSession(SClient client1, SClient client2, GameServer server) {
         this.client1 = client1;
         this.client2 = client2;
@@ -24,6 +39,9 @@ public class GameSession {
         this.game.setPlayer2(new Player(client2.getClientId(), "Player " + client2.getClientId()));
     }
     
+    /**
+     * Oyun oturumunu başlatır ve oyuncuları hazırlar
+     */
     public void startSession() {
         // Oyunu başlat
         game.initializeBoards();
@@ -50,6 +68,11 @@ public class GameSession {
         }
     }
     
+    /**
+     * Oyuncunun hamlesini işler ve sonuçları oyunculara bildirir
+     * @param playerId Hamle yapan oyuncunun ID'si
+     * @param move Yapılan hamle
+     */
     public void processPlayerMove(int playerId, Move move) {
         // Hangi oyuncunun hamle yaptığını belirle
         Player currentPlayer = (playerId == game.getPlayer1().getId()) 
@@ -93,6 +116,9 @@ public class GameSession {
         }
     }
     
+    /**
+     * Oyun durumunu günceller ve gerekirse oyunu sonlandırır
+     */
     public void updateGameState() {
         // Oyun durumunu kontrol et
         if (game.getState() == BattleshipGame.GameState.GAME_OVER) {
@@ -102,10 +128,17 @@ public class GameSession {
         }
     }
     
+    /**
+     * Oyun oturumunu beraberlik durumunda sonlandırır
+     */
     public void endSession() {
         endSession(null);
     }
     
+    /**
+     * Oyun oturumunu kazanan belirli olarak sonlandırır
+     * @param winner Kazanan oyuncu (null ise beraberlik)
+     */
     public void endSession(Player winner) {
         try {
             String endMsg;
@@ -134,6 +167,9 @@ public class GameSession {
         }
     }
     
+    /**
+     * Her iki oyuncuya güncel oyun durumunu gönderir
+     */
     public void broadcastGameState() {
         try {
             // Her oyuncuya kendi tahta durumunu ve rakip tahtasını gönder
@@ -152,10 +188,18 @@ public class GameSession {
         }
     }
     
+    /**
+     * Birinci oyuncunun istemci bağlantısını döndürür
+     * @return Birinci oyuncunun istemci bağlantısı
+     */
     public SClient getClient1() {
         return client1;
     }
     
+    /**
+     * İkinci oyuncunun istemci bağlantısını döndürür
+     * @return İkinci oyuncunun istemci bağlantısı
+     */
     public SClient getClient2() {
         return client2;
     }

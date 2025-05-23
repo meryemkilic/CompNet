@@ -4,13 +4,26 @@ import java.util.Arrays;
 
 /**
  * Oyuncu bilgilerini ve oyun tahtasını temsil eden sınıf.
+ * Her oyuncu kendi tahtasına ve rakibinin tahtasının görünen kısmına sahiptir.
  */
 public class Player {
+    /** Oyuncu ID'si */
     private int id;
-    private String name;
-    private Board board;
-    private Board opponentView; // Rakibin tahtasının görünen kısmı
     
+    /** Oyuncu adı */
+    private String name;
+    
+    /** Oyuncunun kendi tahtası */
+    private Board board;
+    
+    /** Rakibin tahtasının görünen kısmı */
+    private Board opponentView;
+    
+    /**
+     * Yeni bir oyuncu oluşturur
+     * @param id Oyuncu ID'si
+     * @param name Oyuncu adı
+     */
     public Player(int id, String name) {
         this.id = id;
         this.name = name;
@@ -18,30 +31,54 @@ public class Player {
         this.opponentView = new Board(10, 10);
     }
     
+    /**
+     * Oyuncu ID'sini döndürür
+     * @return Oyuncu ID'si
+     */
     public int getId() {
         return id;
     }
     
+    /**
+     * Oyuncu adını döndürür
+     * @return Oyuncu adı
+     */
     public String getName() {
         return name;
     }
     
+    /**
+     * Oyuncunun kendi tahtasını döndürür
+     * @return Oyun tahtası
+     */
     public Board getBoard() {
         return board;
     }
     
+    /**
+     * Oyuncunun kendi tahtasını ayarlar
+     * @param board Yeni oyun tahtası
+     */
     public void setBoard(Board board) {
         this.board = board;
     }
     
+    /**
+     * Rakibin tahtasının görünen kısmını döndürür
+     * @return Rakip tahtası görünümü
+     */
     public Board getOpponentView() {
         return opponentView;
     }
     
     /**
      * Oyun tahtasını temsil eden iç sınıf
+     * Tahta, hücrelerin durumlarını ve boyutlarını yönetir
      */
     public static class Board {
+        /**
+         * Tahta hücrelerinin olası durumları
+         */
         public enum CellState {
             EMPTY,      // Boş
             SHIP,       // Gemi var
@@ -49,10 +86,20 @@ public class Player {
             MISS        // Iskalama
         }
         
+        /** Tahta hücreleri */
         private CellState[][] cells;
+        
+        /** Tahta genişliği */
         private int width;
+        
+        /** Tahta yüksekliği */
         private int height;
         
+        /**
+         * Yeni bir tahta oluşturur
+         * @param width Tahta genişliği
+         * @param height Tahta yüksekliği
+         */
         public Board(int width, int height) {
             this.width = width;
             this.height = height;
@@ -64,6 +111,13 @@ public class Player {
             }
         }
         
+        /**
+         * Belirtilen koordinattaki hücrenin durumunu döndürür
+         * @param x X koordinatı
+         * @param y Y koordinatı
+         * @return Hücre durumu
+         * @throws IllegalArgumentException Geçersiz koordinatlar için
+         */
         public CellState getCell(int x, int y) {
             if (x < 0 || x >= width || y < 0 || y >= height) {
                 throw new IllegalArgumentException("Geçersiz hücre koordinatları: " + x + "," + y);
@@ -71,6 +125,13 @@ public class Player {
             return cells[y][x];
         }
         
+        /**
+         * Belirtilen koordinattaki hücrenin durumunu ayarlar
+         * @param x X koordinatı
+         * @param y Y koordinatı
+         * @param state Yeni hücre durumu
+         * @throws IllegalArgumentException Geçersiz koordinatlar için
+         */
         public void setCell(int x, int y, CellState state) {
             if (x < 0 || x >= width || y < 0 || y >= height) {
                 throw new IllegalArgumentException("Geçersiz hücre koordinatları: " + x + "," + y);
@@ -78,14 +139,26 @@ public class Player {
             cells[y][x] = state;
         }
         
+        /**
+         * Tahta genişliğini döndürür
+         * @return Tahta genişliği
+         */
         public int getWidth() {
             return width;
         }
         
+        /**
+         * Tahta yüksekliğini döndürür
+         * @return Tahta yüksekliği
+         */
         public int getHeight() {
             return height;
         }
         
+        /**
+         * Tahtayı string formatına dönüştürür
+         * @return Tahta durumlarının string temsili
+         */
         public String serialize() {
             StringBuilder sb = new StringBuilder();
             for (int y = 0; y < height; y++) {
@@ -96,6 +169,11 @@ public class Player {
             return sb.toString();
         }
         
+        /**
+         * String formatındaki tahta verisini ayrıştırır
+         * @param data Tahta durumlarının string temsili
+         * @throws IllegalArgumentException Geçersiz veri formatı için
+         */
         public void deserialize(String data) {
             if (data.length() != width * height) {
                 throw new IllegalArgumentException("Geçersiz tahta verisi uzunluğu");

@@ -5,8 +5,13 @@ import javax.swing.UIManager;
 
 /**
  * İstemci uygulamasını başlatan ana sınıf.
+ * Bu sınıf, istemci arayüzünü başlatır ve sistem görünümünü ayarlar.
  */
 public class ClientMain {
+    /**
+     * Uygulamanın ana giriş noktası
+     * @param args Komut satırı argümanları (kullanılmıyor)
+     */
     public static void main(String[] args) {
         try {
             // Sistem görünümünü ayarla

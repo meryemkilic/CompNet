@@ -1,8 +1,5 @@
 package com.mycompany.savasgemisi.server;
 
-import com.mycompany.savasgemisi.common.Message;
-import com.mycompany.savasgemisi.common.MessageType;
-import com.mycompany.savasgemisi.common.Move;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,22 +9,51 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.mycompany.savasgemisi.common.Message;
+import com.mycompany.savasgemisi.common.MessageType;
+import com.mycompany.savasgemisi.common.Move;
+
 /**
  * Sunucu ana sınıfı.
+ * Bu sınıf, oyun sunucusunun temel işlevlerini yönetir:
+ * - İstemci bağlantılarını kabul eder
+ * - Oyuncuları eşleştirir
+ * - Oyun oturumlarını yönetir
+ * - İstemciler arası iletişimi koordine eder
  */
 public class GameServer {
+    /** Sunucunun dinlediği port numarası */
     private int port;
+    
+    /** Sunucu soketi */
     private ServerSocket serverSocket;
+    
+    /** Eşleşme bekleyen oyuncuların listesi */
     private List<SClient> waitingClients = new ArrayList<>();
+    
+    /** Aktif bağlı tüm istemcilerin listesi */
     private List<SClient> connectedClients = new ArrayList<>();
+    
+    /** Aktif oyun oturumlarının haritası (clientId -> GameSession) */
     private Map<Integer, GameSession> gameSessions = new HashMap<>();
+    
+    /** İstemci ID'leri için atomik sayaç */
     private AtomicInteger clientIdCounter = new AtomicInteger(1);
+    
+    /** Sunucunun çalışma durumu */
     private boolean running = false;
     
+    /**
+     * GameServer yapıcı metodu
+     * @param port Sunucunun dinleyeceği port numarası
+     */
     public GameServer(int port) {
         this.port = port;
     }
     
+    /**
+     * Sunucuyu başlatır ve istemci bağlantılarını kabul etmeye başlar
+     */
     public void startServer() {
         try {
             serverSocket = new ServerSocket(port);
@@ -40,6 +66,10 @@ public class GameServer {
         }
     }
     
+    /**
+     * Yeni istemci bağlantılarını kabul eden thread'i başlatır
+     * Her yeni bağlantı için bir SClient nesnesi oluşturur
+     */
     public void acceptConnections() {
         new Thread(() -> {
             try {
@@ -67,6 +97,10 @@ public class GameServer {
         }).start();
     }
     
+    /**
+     * Yeni bağlanan istemciyi işler ve gerekirse oyun eşleştirmesi yapar
+     * @param client Bağlanan istemci
+     */
     public void clientConnected(SClient client) {
         System.out.println("İstemci bağlandı: ID=" + client.getClientId());
         
@@ -105,6 +139,10 @@ public class GameServer {
         }
     }
     
+    /**
+     * Bağlantısı kesilen istemciyi işler ve gerekli temizlik işlemlerini yapar
+     * @param client Bağlantısı kesilen istemci
+     */
     public void clientDisconnected(SClient client) {
         System.out.println("İstemci bağlantısı kesildi: ID=" + client.getClientId());
         
@@ -135,11 +173,20 @@ public class GameServer {
         }
     }
     
+    /**
+     * İstemcinin oyun başlatma isteğini işler
+     * @param client İstekte bulunan istemci
+     */
     public void requestGameStart(SClient client) {
         // İstemci bekleme listesindeyse, oyun başlatma isteğini işle
         // (Bu örnekte, otomatik eşleştirme kullanıldığı için ek işlem yapmıyoruz)
     }
     
+    /**
+     * Oyuncunun hamlesini işler ve ilgili oyun oturumuna iletir
+     * @param client Hamle yapan istemci
+     * @param move Yapılan hamle
+     */
     public void processPlayerMove(SClient client, Move move) {
         // İstemcinin oturumunu bul
         synchronized (gameSessions) {
@@ -161,6 +208,10 @@ public class GameServer {
         }
     }
     
+    /**
+     * Oyun oturumunu sonlandırır ve kaynakları temizler
+     * @param session Sonlandırılacak oyun oturumu
+     */
     public void endGameSession(GameSession session) {
         // Oturumu sonlandır ve kaynakları temizle
         synchronized (gameSessions) {
@@ -169,6 +220,10 @@ public class GameServer {
         }
     }
     
+    /**
+     * Tüm bağlı istemcilere mesaj gönderir
+     * @param msg Gönderilecek mesaj
+     */
     public void broadcastMessage(String msg) {
         synchronized (connectedClients) {
             for (SClient client : connectedClients) {
@@ -181,6 +236,11 @@ public class GameServer {
         }
     }
     
+    /**
+     * Belirli bir istemciye mesaj gönderir
+     * @param clientId Hedef istemci ID'si
+     * @param msg Gönderilecek mesaj
+     */
     public void sendToClient(int clientId, String msg) {
         synchronized (connectedClients) {
             for (SClient client : connectedClients) {
@@ -196,6 +256,10 @@ public class GameServer {
         }
     }
     
+    /**
+     * Sunucuyu güvenli bir şekilde kapatır
+     * Tüm bağlantıları ve kaynakları temizler
+     */
     public void shutdown() {
         running = false;
         try {
