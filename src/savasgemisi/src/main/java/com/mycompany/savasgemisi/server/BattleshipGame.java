@@ -1,31 +1,51 @@
 package com.mycompany.savasgemisi.server;
 
-import com.mycompany.savasgemisi.common.Move;
-import com.mycompany.savasgemisi.server.Player.Board;
 import java.util.Random;
+
+import com.mycompany.savasgemisi.server.Player.Board;
 
 /**
  * Savaş Gemisi oyununun temel mantığını içeren sınıf.
+ * Bu sınıf, oyun kurallarını, oyun durumunu ve oyuncu hamlelerini yönetir.
  */
 public class BattleshipGame {
+    /** Birinci oyuncu */
     private Player player1;
+    
+    /** İkinci oyuncu */
     private Player player2;
+    
+    /** Sıradaki oyuncunun ID'si */
     private int currentPlayerId;
+    
+    /** Oyunun mevcut durumu */
     private GameState state;
+    
+    /** Rastgele sayı üreteci */
     private Random random = new Random();
     
+    /**
+     * Oyunun olası durumlarını tanımlayan enum
+     */
     public enum GameState {
-        WAITING_FOR_PLAYERS,
-        PLACING_SHIPS,
-        PLAYER1_TURN,
-        PLAYER2_TURN,
-        GAME_OVER
+        WAITING_FOR_PLAYERS,  // Oyuncular bekleniyor
+        PLACING_SHIPS,        // Gemiler yerleştiriliyor
+        PLAYER1_TURN,         // 1. oyuncunun sırası
+        PLAYER2_TURN,         // 2. oyuncunun sırası
+        GAME_OVER            // Oyun bitti
     }
     
+    /**
+     * Yeni bir oyun oluşturur
+     */
     public BattleshipGame() {
         this.state = GameState.WAITING_FOR_PLAYERS;
     }
     
+    /**
+     * Oyun tahtalarını başlatır ve oyuncuları hazırlar
+     * @throws IllegalStateException İki oyuncu da bağlı değilse
+     */
     public void initializeBoards() {
         if (player1 == null || player2 == null) {
             throw new IllegalStateException("Oyun başlatılamıyor: İki oyuncu da bağlı değil.");
@@ -39,6 +59,10 @@ public class BattleshipGame {
         state = GameState.PLACING_SHIPS;
     }
     
+    /**
+     * Oyuncunun gemilerini rastgele yerleştirir
+     * @param player Gemi yerleştirilecek oyuncu
+     */
     public void placeShips(Player player) {
         // Oyuncunun gemilerini rastgele yerleştir
         // Bu gerçek bir uygulamada, oyuncudan gelen verilere göre yerleştirilir
@@ -70,6 +94,15 @@ public class BattleshipGame {
         }
     }
     
+    /**
+     * Belirtilen konuma gemi yerleştirilebilir mi kontrol eder
+     * @param board Oyun tahtası
+     * @param x Başlangıç x koordinatı
+     * @param y Başlangıç y koordinatı
+     * @param size Gemi boyutu
+     * @param horizontal Yatay yerleştirme mi?
+     * @return Gemi yerleştirilebilir mi?
+     */
     private boolean canPlaceShip(Board board, int x, int y, int size, boolean horizontal) {
         int width = board.getWidth();
         int height = board.getHeight();
@@ -96,6 +129,14 @@ public class BattleshipGame {
         return true;
     }
     
+    /**
+     * Gemiyi tahtaya yerleştirir
+     * @param board Oyun tahtası
+     * @param x Başlangıç x koordinatı
+     * @param y Başlangıç y koordinatı
+     * @param size Gemi boyutu
+     * @param horizontal Yatay yerleştirme mi?
+     */
     private void placeShip(Board board, int x, int y, int size, boolean horizontal) {
         for (int i = 0; i < size; i++) {
             int placeX = horizontal ? x + i : x;
@@ -104,11 +145,23 @@ public class BattleshipGame {
         }
     }
     
+    /**
+     * Tüm oyuncuların gemilerini yerleştirip yerleştirmediğini kontrol eder
+     * @return Tüm gemiler yerleştirildi mi?
+     */
     private boolean allShipsPlaced() {
         // İki oyuncunun da gemilerini yerleştirdiğini kontrol et
         return true; // Bu basitleştirilmiş versiyonda her zaman true
     }
     
+    /**
+     * Oyuncunun hamlesini işler
+     * @param player Hamle yapan oyuncu
+     * @param x Hedef x koordinatı
+     * @param y Hedef y koordinatı
+     * @return Hamle isabetli mi?
+     * @throws IllegalStateException Oyun durumu uygun değilse veya sıra oyuncuda değilse
+     */
     public boolean makeMove(Player player, int x, int y) {
         if (state != GameState.PLAYER1_TURN && state != GameState.PLAYER2_TURN) {
             throw new IllegalStateException("Şu anda hamle yapılamaz.");
@@ -152,10 +205,19 @@ public class BattleshipGame {
         return isHit;
     }
     
+    /**
+     * Oyuncunun tahta durumunu döndürür
+     * @param player Oyuncu
+     * @return Oyun durumu
+     */
     public GameState getBoardState(Player player) {
         return state;
     }
     
+    /**
+     * Oyunun bitip bitmediğini kontrol eder
+     * @return Oyun bitti mi?
+     */
     public boolean checkVictory() {
         // Oyunun bitip bitmediğini kontrol et
         // Bir oyuncunun tüm gemileri batmış mı?
@@ -170,6 +232,11 @@ public class BattleshipGame {
         return false;
     }
     
+    /**
+     * Tahtada hala gemi olup olmadığını kontrol eder
+     * @param board Kontrol edilecek tahta
+     * @return Tahtada gemi var mı?
+     */
     private boolean hasRemainingShips(Board board) {
         // Tahtada hala gemi var mı kontrol et
         for (int y = 0; y < board.getHeight(); y++) {
@@ -182,6 +249,10 @@ public class BattleshipGame {
         return false;
     }
     
+    /**
+     * Oyunun kazananını döndürür
+     * @return Kazanan oyuncu (null ise beraberlik veya oyun bitmedi)
+     */
     public Player getWinner() {
         if (state != GameState.GAME_OVER) {
             return null;
@@ -199,26 +270,50 @@ public class BattleshipGame {
         return null; // Beraberlik veya oyun bitmedi
     }
     
+    /**
+     * Birinci oyuncuyu ayarlar
+     * @param player1 Birinci oyuncu
+     */
     public void setPlayer1(Player player1) {
         this.player1 = player1;
     }
     
+    /**
+     * İkinci oyuncuyu ayarlar
+     * @param player2 İkinci oyuncu
+     */
     public void setPlayer2(Player player2) {
         this.player2 = player2;
     }
     
+    /**
+     * Birinci oyuncuyu döndürür
+     * @return Birinci oyuncu
+     */
     public Player getPlayer1() {
         return player1;
     }
     
+    /**
+     * İkinci oyuncuyu döndürür
+     * @return İkinci oyuncu
+     */
     public Player getPlayer2() {
         return player2;
     }
     
+    /**
+     * Oyunun mevcut durumunu döndürür
+     * @return Oyun durumu
+     */
     public GameState getState() {
         return state;
     }
     
+    /**
+     * Sıradaki oyuncunun ID'sini döndürür
+     * @return Sıradaki oyuncunun ID'si
+     */
     public int getCurrentPlayerId() {
         return currentPlayerId;
     }

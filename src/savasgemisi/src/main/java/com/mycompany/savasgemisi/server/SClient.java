@@ -1,24 +1,45 @@
 package com.mycompany.savasgemisi.server;
 
-import com.mycompany.savasgemisi.common.Message;
-import com.mycompany.savasgemisi.common.MessageType;
-import com.mycompany.savasgemisi.common.Move;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import com.mycompany.savasgemisi.common.Message;
+import com.mycompany.savasgemisi.common.MessageType;
+import com.mycompany.savasgemisi.common.Move;
+
 /**
  * Sunucu tarafında her istemci için oluşturulan thread sınıfı.
+ * Her istemci bağlantısı için ayrı bir SClient nesnesi oluşturulur ve
+ * bu nesne istemci ile sunucu arasındaki iletişimi yönetir.
  */
 public class SClient extends Thread {
+    /** İstemci soketi */
     private Socket socket;
+    
+    /** İstemciye veri göndermek için çıkış akışı */
     private OutputStream output;
+    
+    /** İstemciden veri almak için giriş akışı */
     private InputStream input;
+    
+    /** Sunucu referansı */
     private GameServer gameServer;
+    
+    /** İstemci ID'si */
     private int clientId;
+    
+    /** Thread'in çalışma durumu */
     private boolean running = true;
     
+    /**
+     * Yeni bir istemci bağlantısı oluşturur
+     * @param socket İstemci soketi
+     * @param gameServer Sunucu referansı
+     * @param clientId İstemci ID'si
+     * @throws IOException Soket bağlantısı kurulamazsa
+     */
     public SClient(Socket socket, GameServer gameServer, int clientId) throws IOException {
         this.socket = socket;
         this.gameServer = gameServer;
@@ -27,10 +48,18 @@ public class SClient extends Thread {
         this.input = socket.getInputStream();
     }
     
+    /**
+     * İstemci dinleme thread'ini başlatır
+     */
     public void listen() {
         this.start();
     }
     
+    /**
+     * İstemciye mesaj gönderir
+     * @param msg Gönderilecek mesaj
+     * @throws IOException Mesaj gönderilemezse
+     */
     public void sendMessage(String msg) throws IOException {
         byte[] msgBytes = msg.getBytes();
         output.write(msgBytes.length);
@@ -38,6 +67,9 @@ public class SClient extends Thread {
         output.flush();
     }
     
+    /**
+     * İstemci bağlantısını kapatır ve kaynakları temizler
+     */
     public void disconnect() {
         running = false;
         try {
@@ -49,6 +81,10 @@ public class SClient extends Thread {
         }
     }
     
+    /**
+     * Gelen mesajı ayrıştırır ve uygun işleyiciye yönlendirir
+     * @param msg Ayrıştırılacak mesaj
+     */
     private void parseMessage(String msg) {
         try {
             Message.ParsedMessage parsedMsg = Message.parseMessage(msg);
@@ -76,6 +112,11 @@ public class SClient extends Thread {
         }
     }
     
+    /**
+     * Bağlantı isteğini işler ve istemciye yanıt gönderir
+     * @param data İstek verisi
+     * @throws IOException Mesaj gönderilemezse
+     */
     private void handleConnectionRequest(String data) throws IOException {
         // İstemciye bağlantısının kabul edildiğini bildir
         String response = Message.generateMessage(
@@ -88,6 +129,10 @@ public class SClient extends Thread {
         gameServer.clientConnected(this);
     }
     
+    /**
+     * Oyuncu hamlesini işler
+     * @param moveData Hamle verisi
+     */
     private void handleMove(String moveData) {
         try {
             Move move = Move.parse(moveData);
@@ -97,10 +142,16 @@ public class SClient extends Thread {
         }
     }
     
+    /**
+     * Oyun başlatma isteğini işler
+     */
     private void handleGameStart() {
         gameServer.requestGameStart(this);
     }
     
+    /**
+     * Thread'in ana döngüsü. İstemciden gelen mesajları dinler ve işler
+     */
     @Override
     public void run() {
         try {
@@ -122,6 +173,10 @@ public class SClient extends Thread {
         }
     }
     
+    /**
+     * İstemci ID'sini döndürür
+     * @return İstemci ID'si
+     */
     public int getClientId() {
         return clientId;
     }

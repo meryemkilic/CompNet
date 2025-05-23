@@ -21,28 +21,58 @@ import javax.swing.SwingUtilities;
 
 /**
  * İstemci kullanıcı arayüzü sınıfı.
+ * Bu sınıf, oyunun grafiksel kullanıcı arayüzünü oluşturur ve yönetir.
+ * İki oyun tahtası (oyuncunun kendi tahtası ve rakip tahtası),
+ * bağlantı ayarları ve durum bilgisi içerir.
  */
 public class ClientUI extends JFrame {
+    /** Oyun tahtasının boyutu */
     private static final int BOARD_SIZE = 10;
+    
+    /** Her bir hücrenin piksel cinsinden boyutu */
     private static final int CELL_SIZE = 30;
     
+    /** Oyun kontrolcüsü referansı */
     private GameController gameController;
+    
+    /** Oyuncunun kendi tahtasını gösteren panel */
     private JPanel myBoardPanel;
+    
+    /** Rakip tahtasını gösteren panel */
     private JPanel opponentBoardPanel;
+    
+    /** Durum bilgisini gösteren etiket */
     private JLabel statusLabel;
+    
+    /** Sunucu IP adresi giriş alanı */
     private JTextField serverIPField;
+    
+    /** Sunucu port numarası giriş alanı */
     private JTextField serverPortField;
+    
+    /** Sunucuya bağlanma düğmesi */
     private JButton connectButton;
+    
+    /** Yeni oyun başlatma düğmesi */
     private JButton newGameButton;
     
+    /** Oyuncunun kendi tahtasındaki hücreler */
     private JPanel[][] myCells = new JPanel[BOARD_SIZE][BOARD_SIZE];
+    
+    /** Rakip tahtasındaki hücreler */
     private JPanel[][] opponentCells = new JPanel[BOARD_SIZE][BOARD_SIZE];
     
+    /**
+     * Yeni bir istemci arayüzü oluşturur ve bileşenleri başlatır
+     */
     public ClientUI() {
         initComponents();
         gameController = new GameController(this);
     }
     
+    /**
+     * Arayüz bileşenlerini oluşturur ve düzenler
+     */
     private void initComponents() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("Savaş Gemisi Oyunu");
@@ -122,6 +152,11 @@ public class ClientUI extends JFrame {
         setLocationRelativeTo(null);
     }
     
+    /**
+     * Oyun tahtası panelini oluşturur
+     * @param isOpponent Rakip tahtası mı yoksa oyuncunun kendi tahtası mı?
+     * @return Oluşturulan tahta paneli
+     */
     private JPanel createBoardPanel(boolean isOpponent) {
         JPanel boardPanel = new JPanel(new GridLayout(BOARD_SIZE, BOARD_SIZE));
         boardPanel.setPreferredSize(new Dimension(BOARD_SIZE * CELL_SIZE, BOARD_SIZE * CELL_SIZE));
@@ -158,6 +193,10 @@ public class ClientUI extends JFrame {
         return boardPanel;
     }
     
+    /**
+     * Oyun tahtalarını günceller
+     * @param boardData Sunucudan gelen tahta verisi
+     */
     public void displayBoard(String boardData) {
         String[] boards = boardData.split(",");
         if (boards.length != 2) {
@@ -175,6 +214,12 @@ public class ClientUI extends JFrame {
         updateBoard(opponentBoardData, opponentCells, true);
     }
     
+    /**
+     * Belirli bir tahtayı günceller
+     * @param boardData Tahta verisi
+     * @param cells Güncellenecek hücreler
+     * @param isOpponent Rakip tahtası mı?
+     */
     private void updateBoard(String boardData, JPanel[][] cells, boolean isOpponent) {
         if (boardData.length() != BOARD_SIZE * BOARD_SIZE) {
             showMessage("Geçersiz tahta boyutu: " + boardData.length());
@@ -192,6 +237,12 @@ public class ClientUI extends JFrame {
         }
     }
     
+    /**
+     * Hücre durumuna göre renk döndürür
+     * @param cellState Hücre durumu (0-EMPTY, 1-SHIP, 2-HIT, 3-MISS)
+     * @param isOpponent Rakip tahtası mı?
+     * @return Hücre rengi
+     */
     private Color getCellColor(int cellState, boolean isOpponent) {
         // CellState enum değerleri: 0-EMPTY, 1-SHIP, 2-HIT, 3-MISS
         switch (cellState) {
@@ -208,6 +259,10 @@ public class ClientUI extends JFrame {
         }
     }
     
+    /**
+     * Oyun durumunu günceller
+     * @param status Yeni durum mesajı
+     */
     public void updateGameStatus(String status) {
         SwingUtilities.invokeLater(() -> {
             statusLabel.setText(status);
@@ -218,12 +273,20 @@ public class ClientUI extends JFrame {
         });
     }
     
+    /**
+     * Mesaj kutusu gösterir
+     * @param message Gösterilecek mesaj
+     */
     public void showMessage(String message) {
         SwingUtilities.invokeLater(() -> {
             JOptionPane.showMessageDialog(this, message);
         });
     }
     
+    /**
+     * Oyun sonu diyaloğunu gösterir
+     * @param message Oyun sonu mesajı
+     */
     public void showGameOverDialog(String message) {
         SwingUtilities.invokeLater(() -> {
             int option = JOptionPane.showConfirmDialog(
@@ -239,10 +302,18 @@ public class ClientUI extends JFrame {
         });
     }
     
+    /**
+     * Sunucu IP adresini döndürür
+     * @return Sunucu IP adresi
+     */
     public String getServerIP() {
         return serverIPField.getText().trim();
     }
     
+    /**
+     * Sunucu port numarasını döndürür
+     * @return Sunucu port numarası
+     */
     public int getServerPort() {
         try {
             return Integer.parseInt(serverPortField.getText().trim());
@@ -251,8 +322,10 @@ public class ClientUI extends JFrame {
         }
     }
     
+    /**
+     * Sunucuya bağlanma işlemini başlatır
+     */
     private void connectToServer() {
-        connectButton.setEnabled(false);
         gameController.startGame();
     }
 } 
