@@ -12,19 +12,10 @@ import com.mycompany.savasgemisi.common.Move;
  * ve oyun mantığını kontrol eder.
  */
 public class GameController {
-    /** Sunucu ile iletişimi sağlayan istemci nesnesi */
     private GameClient client;
-    
-    /** Kullanıcı arayüzü referansı */
     private ClientUI ui;
-    
-    /** Oyunun aktif olup olmadığını belirten bayrak */
     private boolean gameActive = false;
-    
-    /** Oyuncunun benzersiz kimlik numarası */
     private int playerId = -1;
-    
-    /** Oyuncunun sırasının gelip gelmediğini belirten bayrak */
     private boolean myTurn = false;
     
     /**
@@ -67,8 +58,8 @@ public class GameController {
             Move move = new Move(x, y, playerId);
             String moveMsg = Message.generateMessage(MessageType.MOVE, move.toString());
             client.sendMessage(moveMsg);
-            myTurn = false; // Hamle yaptıktan sonra sırayı bekle
-        } catch (IOException e) {
+            myTurn = false;
+        } catch (Exception e) {
             ui.showMessage("Hamle gönderilirken hata: " + e.getMessage());
         }
     }
@@ -79,7 +70,6 @@ public class GameController {
      */
     public void updateGameState(String data) {
         if (data.startsWith("BOARD:")) {
-            // Tahta güncellemesini işle
             String boardData = data.substring("BOARD:".length());
             ui.displayBoard(boardData);
         } else if (data.equals("Sıra sizde")) {
@@ -91,7 +81,6 @@ public class GameController {
         } else if (data.equals("Rakip bekleniyor...")) {
             ui.updateGameStatus("Oyun başlaması için rakip bekleniyor...");
         } else {
-            // Diğer oyun güncellemeleri
             ui.updateGameStatus(data);
         }
     }
@@ -101,8 +90,10 @@ public class GameController {
      * @param data Sunucudan gelen başlangıç verisi
      */
     public void notifyGameStart(String data) {
+        System.out.println("notifyGameStart çağrıldı, data: " + data);
         gameActive = true;
         ui.updateGameStatus("Oyun başladı! " + data);
+        ui.setGameInfo(data);
     }
     
     /**
@@ -122,6 +113,7 @@ public class GameController {
      */
     public void notifyConnected(int clientId) {
         this.playerId = clientId;
+        ui.setPlayerId(clientId);
         ui.updateGameStatus("Sunucuya bağlandı. Oyuncu ID: " + clientId);
     }
     

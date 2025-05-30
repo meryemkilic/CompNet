@@ -15,21 +15,11 @@ import com.mycompany.savasgemisi.common.Move;
  * bu nesne istemci ile sunucu arasındaki iletişimi yönetir.
  */
 public class SClient extends Thread {
-    /** İstemci soketi */
     private Socket socket;
-    
-    /** İstemciye veri göndermek için çıkış akışı */
     private OutputStream output;
-    
-    /** İstemciden veri almak için giriş akışı */
     private InputStream input;
-    
-    /** Sunucu referansı */
     private GameServer gameServer;
-    
-    /** İstemci ID'si */
     private int clientId;
-    
     /** Thread'in çalışma durumu */
     private boolean running = true;
     
@@ -93,15 +83,12 @@ public class SClient extends Thread {
             
             switch (type) {
                 case CONNECTION_REQUEST:
-                    // Bağlantı isteği işle
                     handleConnectionRequest(data);
                     break;
                 case MOVE:
-                    // Hamle işle
                     handleMove(data);
                     break;
                 case GAME_START:
-                    // Oyun başlatma isteği
                     handleGameStart();
                     break;
                 default:
@@ -118,14 +105,12 @@ public class SClient extends Thread {
      * @throws IOException Mesaj gönderilemezse
      */
     private void handleConnectionRequest(String data) throws IOException {
-        // İstemciye bağlantısının kabul edildiğini bildir
         String response = Message.generateMessage(
             MessageType.CONNECTION_REQUEST,
             "OK:" + clientId
         );
         sendMessage(response);
         
-        // Sunucuya bağlantıyı bildir
         gameServer.clientConnected(this);
     }
     

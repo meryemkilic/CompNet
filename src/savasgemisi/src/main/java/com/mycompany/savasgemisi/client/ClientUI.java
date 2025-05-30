@@ -62,6 +62,12 @@ public class ClientUI extends JFrame {
     /** Rakip tahtasındaki hücreler */
     private JPanel[][] opponentCells = new JPanel[BOARD_SIZE][BOARD_SIZE];
     
+    /** Oyuncu ID bilgisini gösteren etiket */
+    private JLabel playerIdLabel;
+    
+    /** Oyun bilgisi (ör: session ve oyuncu id'leri) gösteren etiket */
+    private JLabel gameInfoLabel;
+    
     /**
      * Yeni bir istemci arayüzü oluşturur ve bileşenleri başlatır
      */
@@ -84,18 +90,29 @@ public class ClientUI extends JFrame {
         
         // Üst panel - Bağlantı alanı
         JPanel topPanel = new JPanel();
+        topPanel.setLayout(new GridLayout(2, 1)); // 2 satırlı grid
         serverIPField = new JTextField("localhost", 10);
         serverPortField = new JTextField("5000", 5);
         connectButton = new JButton("Bağlan");
         newGameButton = new JButton("Yeni Oyun");
         newGameButton.setEnabled(false);
+        playerIdLabel = new JLabel("ID: -");
+        gameInfoLabel = new JLabel("Oyun Bilgisi: -");
         
-        topPanel.add(new JLabel("Sunucu IP:"));
-        topPanel.add(serverIPField);
-        topPanel.add(new JLabel("Port:"));
-        topPanel.add(serverPortField);
-        topPanel.add(connectButton);
-        topPanel.add(newGameButton);
+        JPanel connectionPanel = new JPanel();
+        connectionPanel.add(new JLabel("Sunucu IP:"));
+        connectionPanel.add(serverIPField);
+        connectionPanel.add(new JLabel("Port:"));
+        connectionPanel.add(serverPortField);
+        connectionPanel.add(connectButton);
+        connectionPanel.add(newGameButton);
+        
+        JPanel infoPanel = new JPanel();
+        infoPanel.add(playerIdLabel);
+        infoPanel.add(gameInfoLabel);
+        
+        topPanel.add(connectionPanel);
+        topPanel.add(infoPanel);
         
         // Orta panel - Oyun tahtaları
         JPanel centerPanel = new JPanel(new BorderLayout(10, 0));
@@ -207,10 +224,8 @@ public class ClientUI extends JFrame {
         String myBoardData = boards[0];
         String opponentBoardData = boards[1];
         
-        // Benim tahtamı güncelle
         updateBoard(myBoardData, myCells, false);
         
-        // Rakip tahtasını güncelle (görünür kısımları)
         updateBoard(opponentBoardData, opponentCells, true);
     }
     
@@ -318,7 +333,7 @@ public class ClientUI extends JFrame {
         try {
             return Integer.parseInt(serverPortField.getText().trim());
         } catch (NumberFormatException e) {
-            return 5000; // Varsayılan port
+            return 5000; 
         }
     }
     
@@ -327,5 +342,21 @@ public class ClientUI extends JFrame {
      */
     private void connectToServer() {
         gameController.startGame();
+    }
+    
+    /**
+     * Oyuncu ID bilgisini günceller
+     * @param id Oyuncu ID'si
+     */
+    public void setPlayerId(int id) {
+        SwingUtilities.invokeLater(() -> playerIdLabel.setText("ID: " + id));
+    }
+    
+    /**
+     * Oyun bilgisi etiketini günceller
+     * @param info Oyun bilgisi
+     */
+    public void setGameInfo(String info) {
+        SwingUtilities.invokeLater(() -> gameInfoLabel.setText(info));
     }
 } 

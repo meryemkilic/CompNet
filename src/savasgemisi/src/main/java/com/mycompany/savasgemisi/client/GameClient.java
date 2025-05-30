@@ -14,25 +14,12 @@ import com.mycompany.savasgemisi.common.MessageType;
  * Bu sınıf, sunucu ile iletişimi yönetir ve gelen mesajları işler.
  */
 public class GameClient extends Thread {
-    /** Sunucu soketi */
     private Socket socket;
-    
-    /** Sunucuya veri göndermek için çıkış akışı */
     private OutputStream output;
-    
-    /** Sunucudan veri almak için giriş akışı */
     private InputStream input;
-    
-    /** Oyun kontrolcüsü referansı */
     private GameController controller;
-    
-    /** Bağlantı durumu */
     private boolean connected = false;
-    
-    /** Thread'in çalışma durumu */
     private boolean running = true;
-    
-    /** İstemci ID'si */
     private int clientId = -1;
     
     /**
@@ -56,7 +43,6 @@ public class GameClient extends Thread {
         this.input = socket.getInputStream();
         this.connected = true;
         
-        // Sunucuya bağlantı isteği gönder
         sendMessage(Message.generateMessage(MessageType.CONNECTION_REQUEST, "CONNECT"));
     }
     
