@@ -5,13 +5,8 @@ package com.mycompany.savasgemisi.common;
  * Her hamle, bir oyuncunun belirli bir koordinata yaptığı atışı temsil eder.
  */
 public class Move {
-    /** Hamlenin x koordinatı */
     private int x;
-    
-    /** Hamlenin y koordinatı */
     private int y;
-    
-    /** Hamleyi yapan oyuncunun ID'si */
     private int playerId;
     
     /**

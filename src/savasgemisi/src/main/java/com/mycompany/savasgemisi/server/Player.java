@@ -7,16 +7,9 @@ import java.util.Arrays;
  * Her oyuncu kendi tahtasına ve rakibinin tahtasının görünen kısmına sahiptir.
  */
 public class Player {
-    /** Oyuncu ID'si */
     private int id;
-    
-    /** Oyuncu adı */
     private String name;
-    
-    /** Oyuncunun kendi tahtası */
     private Board board;
-    
-    /** Rakibin tahtasının görünen kısmı */
     private Board opponentView;
     
     /**
@@ -27,7 +20,7 @@ public class Player {
     public Player(int id, String name) {
         this.id = id;
         this.name = name;
-        this.board = new Board(10, 10); // 10x10 standart tahta boyutu
+        this.board = new Board(10, 10); 
         this.opponentView = new Board(10, 10);
     }
     
@@ -86,13 +79,8 @@ public class Player {
             MISS        // Iskalama
         }
         
-        /** Tahta hücreleri */
         private CellState[][] cells;
-        
-        /** Tahta genişliği */
         private int width;
-        
-        /** Tahta yüksekliği */
         private int height;
         
         /**
@@ -105,7 +93,6 @@ public class Player {
             this.height = height;
             this.cells = new CellState[height][width];
             
-            // Başlangıçta tüm hücreler boş
             for (CellState[] row : cells) {
                 Arrays.fill(row, CellState.EMPTY);
             }

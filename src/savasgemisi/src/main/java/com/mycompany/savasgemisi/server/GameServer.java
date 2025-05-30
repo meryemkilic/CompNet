@@ -22,25 +22,12 @@ import com.mycompany.savasgemisi.common.Move;
  * - İstemciler arası iletişimi koordine eder
  */
 public class GameServer {
-    /** Sunucunun dinlediği port numarası */
     private int port;
-    
-    /** Sunucu soketi */
     private ServerSocket serverSocket;
-    
-    /** Eşleşme bekleyen oyuncuların listesi */
     private List<SClient> waitingClients = new ArrayList<>();
-    
-    /** Aktif bağlı tüm istemcilerin listesi */
     private List<SClient> connectedClients = new ArrayList<>();
-    
-    /** Aktif oyun oturumlarının haritası (clientId -> GameSession) */
     private Map<Integer, GameSession> gameSessions = new HashMap<>();
-    
-    /** İstemci ID'leri için atomik sayaç */
     private AtomicInteger clientIdCounter = new AtomicInteger(1);
-    
-    /** Sunucunun çalışma durumu */
     private boolean running = false;
     
     /**
@@ -77,16 +64,13 @@ public class GameServer {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("Yeni bağlantı: " + clientSocket.getInetAddress());
                     
-                    // Her yeni istemci için bir ID ata
                     int clientId = clientIdCounter.getAndIncrement();
                     SClient client = new SClient(clientSocket, this, clientId);
                     
-                    // İstemciyi listeleye ekle
                     synchronized (connectedClients) {
                         connectedClients.add(client);
                     }
                     
-                    // İstemciyi dinlemeye başla
                     client.listen();
                 }
             } catch (IOException e) {
@@ -104,33 +88,26 @@ public class GameServer {
     public void clientConnected(SClient client) {
         System.out.println("İstemci bağlandı: ID=" + client.getClientId());
         
-        // İstemciyi bekleyen oyuncular listesine ekle
         synchronized (waitingClients) {
             waitingClients.add(client);
             
-            // İki bekleyen oyuncu varsa, oyun başlat
             if (waitingClients.size() >= 2) {
                 SClient client1 = waitingClients.get(0);
                 SClient client2 = waitingClients.get(1);
                 
-                // Oyun oturumu oluştur
                 GameSession session = new GameSession(client1, client2, this);
                 
-                // Oturumu kaydet
                 synchronized (gameSessions) {
                     gameSessions.put(client1.getClientId(), session);
                     gameSessions.put(client2.getClientId(), session);
                 }
                 
-                // Bekleyen oyuncuları listeden çıkar
                 waitingClients.remove(client1);
                 waitingClients.remove(client2);
                 
-                // Oyunu başlat
                 session.startSession();
             } else {
                 try {
-                    // Oyuncuya bekleme mesajı gönder
                     client.sendMessage(Message.generateMessage(MessageType.GAME_UPDATE, "Rakip bekleniyor..."));
                 } catch (IOException e) {
                     System.err.println("Bekleme mesajı gönderilirken hata: " + e.getMessage());
@@ -146,28 +123,22 @@ public class GameServer {
     public void clientDisconnected(SClient client) {
         System.out.println("İstemci bağlantısı kesildi: ID=" + client.getClientId());
         
-        // İstemciyi bağlı listesinden çıkar
         synchronized (connectedClients) {
             connectedClients.remove(client);
         }
         
-        // İstemci bir oyun oturumunda mı kontrol et
         synchronized (gameSessions) {
             GameSession session = gameSessions.get(client.getClientId());
             if (session != null) {
-                // Oyun oturumunu sonlandır
                 session.endSession();
                 
-                // Oturumu kaldır
                 gameSessions.remove(client.getClientId());
                 
-                // Diğer oyuncunun ID'sini de kaldır
                 SClient otherClient = (session.getClient1() == client) ? session.getClient2() : session.getClient1();
                 gameSessions.remove(otherClient.getClientId());
             }
         }
         
-        // İstemciyi bekleyen listesinden de çıkar
         synchronized (waitingClients) {
             waitingClients.remove(client);
         }
@@ -178,8 +149,29 @@ public class GameServer {
      * @param client İstekte bulunan istemci
      */
     public void requestGameStart(SClient client) {
-        // İstemci bekleme listesindeyse, oyun başlatma isteğini işle
-        // (Bu örnekte, otomatik eşleştirme kullanıldığı için ek işlem yapmıyoruz)
+        synchronized (waitingClients) {
+            if (!waitingClients.contains(client)) {
+                waitingClients.add(client);
+            }
+            if (waitingClients.size() >= 2) {
+                SClient client1 = waitingClients.get(0);
+                SClient client2 = waitingClients.get(1);
+                GameSession session = new GameSession(client1, client2, this);
+                synchronized (gameSessions) {
+                    gameSessions.put(client1.getClientId(), session);
+                    gameSessions.put(client2.getClientId(), session);
+                }
+                waitingClients.remove(client1);
+                waitingClients.remove(client2);
+                session.startSession();
+            } else {
+                try {
+                    client.sendMessage(Message.generateMessage(MessageType.GAME_UPDATE, "Rakip bekleniyor..."));
+                } catch (IOException e) {
+                    System.err.println("Bekleme mesajı gönderilirken hata: " + e.getMessage());
+                }
+            }
+        }
     }
     
     /**
@@ -188,15 +180,12 @@ public class GameServer {
      * @param move Yapılan hamle
      */
     public void processPlayerMove(SClient client, Move move) {
-        // İstemcinin oturumunu bul
         synchronized (gameSessions) {
             GameSession session = gameSessions.get(client.getClientId());
             if (session != null) {
-                // Hamleyi oturuma ilet
                 session.processPlayerMove(client.getClientId(), move);
             } else {
                 try {
-                    // İstemci bir oturumda değilse hata mesajı gönder
                     client.sendMessage(Message.generateMessage(
                         MessageType.ERROR, 
                         "Aktif bir oyunda değilsiniz."
@@ -213,7 +202,6 @@ public class GameServer {
      * @param session Sonlandırılacak oyun oturumu
      */
     public void endGameSession(GameSession session) {
-        // Oturumu sonlandır ve kaynakları temizle
         synchronized (gameSessions) {
             gameSessions.remove(session.getClient1().getClientId());
             gameSessions.remove(session.getClient2().getClientId());
@@ -267,7 +255,6 @@ public class GameServer {
                 serverSocket.close();
             }
             
-            // Tüm istemci bağlantılarını kapat
             synchronized (connectedClients) {
                 for (SClient client : connectedClients) {
                     client.disconnect();
